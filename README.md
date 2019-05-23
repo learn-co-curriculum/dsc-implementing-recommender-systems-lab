@@ -35,7 +35,7 @@ df.info()
 
 ```python
 #drop unnecessary columns
-new_df=df.drop(columns='timestamp')
+new_df=None
 ```
 
 It's now time to transform the dataset into something compatible with Surprise. In order to do this, you're going to need `Reader` and `Dataset` classes. There's a method in `Dataset` specifically for loading dataframes.
@@ -43,12 +43,12 @@ It's now time to transform the dataset into something compatible with Surprise. 
 
 ```python
 from surprise import Reader, Dataset
-reader = Reader()
-data = Dataset.load_from_df(new_df,reader)
+# read in values as Surprise dataset 
+
 
 ```
 
-Let's look at how many users and items we have in our dataset. If using neighborhood-based methods, this will help us determine whether or not we should perform user-user or item-item similarity
+Let's look at how many users and items we have in our dataset. If using neighborhood-based methods, this will help us determine whether or not we should perform user-user or item-item similarity.
 
 
 ```python
@@ -63,7 +63,7 @@ print('Number of items: ',dataset.n_items)
 
 
 ## Determine the Best Model
-Now, compare the different models and see which ones perform best. For consistency sake, use RMSE to evaluate models. Remember to cross-validate! Can you get a model with a higher average RMSE on test data than 0.869?
+Now, compare the different models and see which ones perform best. For consistency sake, use RMSE to evaluate models. Remember to cross-validate! After you have trained your models, print out the average RMSE score for the test set. Can you get a model with a higher average RMSE on test data than 0.869?
 
 
 ```python
@@ -78,17 +78,13 @@ import numpy as np
 
 ```python
 ## Perform a gridsearch with SVD
-params = {'n_factors' :[20,50,100],
-         'reg_all':[0.02,0.05,0.1]}
-g_s_svd = GridSearchCV(SVD,param_grid=params,n_jobs=-1)
-g_s_svd.fit(data)
+
 
 ```
 
 
 ```python
-print(g_s_svd.best_score)
-print(g_s_svd.best_params)
+# print out optimal parameters for SVD after GridSearch
 ```
 
     {'rmse': 0.8689250510051669, 'mae': 0.6679404366294037}
@@ -98,16 +94,12 @@ print(g_s_svd.best_params)
 
 ```python
 # cross validating with KNNBasic
-knn_basic = KNNBasic(sim_options={'name':'pearson','user_based':True})
-cv_knn_basic= cross_validate(knn_basic,data,n_jobs=-1)
+
 ```
 
 
 ```python
-for i in cv_knn_basic.items():
-    print(i)
-print('-----------------------')
-print(np.mean(cv_knn_basic['test_rmse']))
+# print out the average RMSE score for the test set
 ```
 
     ('test_rmse', array([0.97646619, 0.97270627, 0.97874535, 0.97029184, 0.96776748]))
@@ -121,8 +113,7 @@ print(np.mean(cv_knn_basic['test_rmse']))
 
 ```python
 # cross validating with KNNBaseline
-knn_baseline = KNNBaseline(sim_options={'name':'pearson','user_based':True})
-cv_knn_baseline = cross_validate(knn_baseline,data)
+
 ```
 
     Estimating biases using als...
@@ -144,10 +135,8 @@ cv_knn_baseline = cross_validate(knn_baseline,data)
 
 
 ```python
-for i in cv_knn_baseline.items():
-    print(i)
+# print out the average score for the test set
 
-np.mean(cv_knn_baseline['test_rmse'])
 ```
 
     ('test_rmse', array([0.87268017, 0.88765352, 0.87311917, 0.88706914, 0.87043399]))
@@ -243,11 +232,10 @@ df_movies.head()
 
 
 ## Making simple predictions
-Just as a reminder, let's look at how you make a prediction for an individual user and item. First, we'll fit the SVD model we had from before.
+Just as a reminder, let's look at how you make a prediction for an individual user and item. First, we'll fit the optimal SVD model we had from before.
 
 
 ```python
-
 svd = SVD(n_factors= 50, reg_all=0.05)
 svd.fit(dataset)
 ```
@@ -290,28 +278,13 @@ The function returns:
 
 ```python
 def movie_rater(movie_df,num, genre=None):
-    userID = 1000
-    rating_list = []
-    while num > 0:
-        if genre:
-            movie = movie_df[movie_df['genres'].str.contains(genre)].sample(1)
-        else:
-            movie = movie_df.sample(1)
-        print(movie)
-        rating = input('How do you rate this movie on a scale of 1-5, press n if you have not seen :\n')
-        if rating == 'n':
-            continue
-        else:
-            rating_one_movie = {'userId':userID,'movieId':movie['movieId'].values[0],'rating':rating}
-            rating_list.append(rating_one_movie) 
-            num -= 1
-    return rating_list
+    pass
         
 ```
 
 
 ```python
-user_rating = movie_rater(df_movies,4,'Comedy')
+# try out the new function here!
 ```
 
           movieId                   title          genres
@@ -361,15 +334,13 @@ Now that you have new ratings, you can use them to make predictions for this new
 
 ```python
 ## add the new ratings to the original ratings DataFrame
-new_ratings_df = new_df.append(user_rating,ignore_index=True)
-new_data = Dataset.load_from_df(new_ratings_df,reader)
+
 ```
 
 
 ```python
 # train a model using the new combined DataFrame
-svd_ = SVD(n_factors= 50, reg_all=0.05)
-svd_.fit(new_data.build_full_trainset())
+
 ```
 
 
@@ -383,9 +354,6 @@ svd_.fit(new_data.build_full_trainset())
 ```python
 # make predictions for the user
 # you'll probably want to create a list of tuples in the format (movie_id, predicted_score)
-list_of_movies = []
-for m_id in new_df['movieId'].unique():
-    list_of_movies.append( (m_id,svd_.predict(1000,m_id)[3]))
 
 ```
 
@@ -393,7 +361,7 @@ for m_id in new_df['movieId'].unique():
 ```python
 # order the predictions from highest to lowest rated
 
-ranked_movies = sorted(list_of_movies,key=lambda x:x[1],reverse=True)
+ranked_movies = None
 ```
 
  For the final component of this challenge, it could be useful to create a function `recommended_movies` that takes in the parameters:
@@ -407,12 +375,7 @@ The function should use a for loop to print out each recommended *n* movies in o
 ```python
 # return the top n recommendations using the 
 def recommended_movies(user_ratings,movie_title_df,n):
-        for idx, rec in enumerate(user_ratings):
-            title = movie_title_df.loc[movie_title_df['movieId'] == int(rec[0])]['title']
-            print('Recommendation # ',idx+1,': ',title,'\n')
-            n-= 1
-            if n == 0:
-                break
+        pass
             
 recommended_movies(ranked_movies,df_movies,5)
 ```
