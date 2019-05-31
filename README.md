@@ -167,7 +167,7 @@ Based off these outputs, it seems like the best performing model is the SVD mode
 
 ## Making Recommendations
 
-This next section is going to involve making recommendations, and it's important that the output for the recommendation is interpretable to people. Rather than returning the movie_id values, it would be far more valuable to return the actual title of the movie. As a first step, let's read in the movies to a dataframe and take a peak at what information we have about them.
+This next section is going to involve making recommendations, and it's important that the output for the recommendation is interpretable to people. Rather than returning the movie_id values, it would be far more valuable to return the actual title of the movie. As a first step, let's read in the movies to a dataframe and take a peek at what information we have about them.
 
 
 ```python
