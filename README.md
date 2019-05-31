@@ -48,7 +48,7 @@ from surprise import Reader, Dataset
 
 ```
 
-Let's look at how many users and items we have in our dataset. If using neighborhood-based methods, this will help us determine whether or not we should perform user-user or item-item similarity.
+Let's look at how many users and items we have in our dataset. If using neighborhood-based methods, this will help us determine whether or not we should perform user-user or item-item similarity
 
 
 ```python
@@ -63,7 +63,7 @@ print('Number of items: ',dataset.n_items)
 
 
 ## Determine the Best Model
-Now, compare the different models and see which ones perform best. For consistency sake, use RMSE to evaluate models. Remember to cross-validate! After you have trained your models, print out the average RMSE score for the test set. Can you get a model with a higher average RMSE on test data than 0.869?
+Now, compare the different models and see which ones perform best. For consistency sake, use RMSE to evaluate models. Remember to cross-validate! Can you get a model with a higher average RMSE on test data than 0.869?
 
 
 ```python
@@ -156,7 +156,7 @@ Based off these outputs, it seems like the best performing model is the SVD mode
 
 ## Making Recommendations
 
-This next section is going to involve making recommendations, and it's important that the output for the recommendation is interpretable to people. Rather than returning the movie_id values, it would be far more valuable to return the actual title of the movie. As a first step, let's read in the movies to a dataframe and take a peak at what information we have about them.
+This next section is going to involve making recommendations, and it's important that the output for the recommendation is interpretable to people. Rather than returning the movie_id values, it would be far more valuable to return the actual title of the movie. As a first step, let's read in the movies to a dataframe and take a peek at what information we have about them.
 
 
 ```python
@@ -232,7 +232,7 @@ df_movies.head()
 
 
 ## Making simple predictions
-Just as a reminder, let's look at how you make a prediction for an individual user and item. First, we'll fit the optimal SVD model we had from before.
+Just as a reminder, let's look at how you make a prediction for an individual user and item. First, we'll fit the SVD model we had from before.
 
 
 ```python
