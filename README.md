@@ -38,6 +38,32 @@ df.info()
 new_df=None
 ```
 
+
+```python
+# __SOLUTION__ 
+import pandas as pd
+df = pd.read_csv('./ml-latest-small/ratings.csv')
+df.info()
+```
+
+    <class 'pandas.core.frame.DataFrame'>
+    RangeIndex: 100836 entries, 0 to 100835
+    Data columns (total 4 columns):
+    userId       100836 non-null int64
+    movieId      100836 non-null int64
+    rating       100836 non-null float64
+    timestamp    100836 non-null int64
+    dtypes: float64(1), int64(3)
+    memory usage: 3.1 MB
+
+
+
+```python
+# __SOLUTION__ 
+#drop unnecessary columns
+new_df=df.drop(columns='timestamp')
+```
+
 It's now time to transform the dataset into something compatible with Surprise. In order to do this, you're going to need `Reader` and `Dataset` classes. There's a method in `Dataset` specifically for loading dataframes.
 
 
@@ -48,10 +74,32 @@ from surprise import Reader, Dataset
 
 ```
 
+
+```python
+# __SOLUTION__ 
+from surprise import Reader, Dataset
+reader = Reader()
+data = Dataset.load_from_df(new_df,reader)
+
+```
+
 Let's look at how many users and items we have in our dataset. If using neighborhood-based methods, this will help us determine whether or not we should perform user-user or item-item similarity
 
 
 ```python
+dataset = data.build_full_trainset()
+print('Number of users: ',dataset.n_users,'\n')
+print('Number of items: ',dataset.n_items)
+```
+
+    Number of users:  610 
+    
+    Number of items:  9724
+
+
+
+```python
+# __SOLUTION__ 
 dataset = data.build_full_trainset()
 print('Number of users: ',dataset.n_users,'\n')
 print('Number of items: ',dataset.n_items)
@@ -152,6 +200,111 @@ import numpy as np
 
 
 
+
+```python
+# __SOLUTION__ 
+# importing relevant libraries
+from surprise.model_selection import cross_validate
+from surprise.prediction_algorithms import SVD
+from surprise.prediction_algorithms import KNNWithMeans, KNNBasic, KNNBaseline
+from surprise.model_selection import GridSearchCV
+import numpy as np
+```
+
+
+```python
+# __SOLUTION__ 
+## Perform a gridsearch with SVD
+params = {'n_factors' :[20,50,100],
+         'reg_all':[0.02,0.05,0.1]}
+g_s_svd = GridSearchCV(SVD,param_grid=params,n_jobs=-1)
+g_s_svd.fit(data)
+
+```
+
+
+```python
+# __SOLUTION__ 
+print(g_s_svd.best_score)
+print(g_s_svd.best_params)
+```
+
+    {'rmse': 0.8689250510051669, 'mae': 0.6679404366294037}
+    {'rmse': {'n_factors': 50, 'reg_all': 0.05}, 'mae': {'n_factors': 100, 'reg_all': 0.05}}
+
+
+
+```python
+# __SOLUTION__ 
+# cross validating with KNNBasic
+knn_basic = KNNBasic(sim_options={'name':'pearson','user_based':True})
+cv_knn_basic= cross_validate(knn_basic,data,n_jobs=-1)
+```
+
+
+```python
+# __SOLUTION__ 
+for i in cv_knn_basic.items():
+    print(i)
+print('-----------------------')
+print(np.mean(cv_knn_basic['test_rmse']))
+```
+
+    ('test_rmse', array([0.97646619, 0.97270627, 0.97874535, 0.97029184, 0.96776748]))
+    ('test_mae', array([0.75444119, 0.75251222, 0.7531242 , 0.74938542, 0.75152129]))
+    ('fit_time', (0.46678805351257324, 0.54010009765625, 0.7059998512268066, 0.5852491855621338, 1.0139541625976562))
+    ('test_time', (2.308177947998047, 2.4834508895874023, 2.6563329696655273, 2.652374029159546, 1.2219891548156738))
+    -----------------------
+    0.9731954260849399
+
+
+
+```python
+# __SOLUTION__ 
+# cross validating with KNNBaseline
+knn_baseline = KNNBaseline(sim_options={'name':'pearson','user_based':True})
+cv_knn_baseline = cross_validate(knn_baseline,data)
+```
+
+    Estimating biases using als...
+    Computing the pearson similarity matrix...
+    Done computing similarity matrix.
+    Estimating biases using als...
+    Computing the pearson similarity matrix...
+    Done computing similarity matrix.
+    Estimating biases using als...
+    Computing the pearson similarity matrix...
+    Done computing similarity matrix.
+    Estimating biases using als...
+    Computing the pearson similarity matrix...
+    Done computing similarity matrix.
+    Estimating biases using als...
+    Computing the pearson similarity matrix...
+    Done computing similarity matrix.
+
+
+
+```python
+# __SOLUTION__ 
+for i in cv_knn_baseline.items():
+    print(i)
+
+np.mean(cv_knn_baseline['test_rmse'])
+```
+
+    ('test_rmse', array([0.87268017, 0.88765352, 0.87311917, 0.88706914, 0.87043399]))
+    ('test_mae', array([0.66796685, 0.676203  , 0.66790869, 0.67904038, 0.66459155]))
+    ('fit_time', (0.6972200870513916, 0.7296440601348877, 0.5842609405517578, 0.609612226486206, 0.61130690574646))
+    ('test_time', (1.5466029644012451, 1.567044973373413, 1.6441452503204346, 1.5709199905395508, 1.6216418743133545))
+
+
+
+
+
+    0.8781911983703239
+
+
+
 Based off these outputs, it seems like the best performing model is the SVD model with n_factors = 50 and a regularization rate of 0.05. Let's use that model to make some predictions. Use that model or if you found one that performs better, feel free to use that.
 
 ## Making Recommendations
@@ -165,6 +318,81 @@ df_movies = pd.read_csv('./ml-latest-small/movies.csv')
 
 
 ```python
+df_movies.head()
+```
+
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>movieId</th>
+      <th>title</th>
+      <th>genres</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>1</td>
+      <td>Toy Story (1995)</td>
+      <td>Adventure|Animation|Children|Comedy|Fantasy</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>2</td>
+      <td>Jumanji (1995)</td>
+      <td>Adventure|Children|Fantasy</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>3</td>
+      <td>Grumpier Old Men (1995)</td>
+      <td>Comedy|Romance</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>4</td>
+      <td>Waiting to Exhale (1995)</td>
+      <td>Comedy|Drama|Romance</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>5</td>
+      <td>Father of the Bride Part II (1995)</td>
+      <td>Comedy</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+
+```python
+# __SOLUTION__ 
+df_movies = pd.read_csv('./ml-latest-small/movies.csv')
+```
+
+
+```python
+# __SOLUTION__ 
 df_movies.head()
 ```
 
@@ -259,6 +487,34 @@ svd.predict(2,4)
 
 
 
+
+```python
+# __SOLUTION__ 
+
+svd = SVD(n_factors= 50, reg_all=0.05)
+svd.fit(dataset)
+```
+
+
+
+
+    <surprise.prediction_algorithms.matrix_factorization.SVD at 0x11952ab38>
+
+
+
+
+```python
+# __SOLUTION__ 
+svd.predict(2,4)
+```
+
+
+
+
+    Prediction(uid=2, iid=4, r_ui=None, est=3.0129484092252135, details={'was_impossible': False})
+
+
+
 This prediction value is a tuple and each of the values within it can be accessed by way of indexing. Now let's put all of our knowledge of recommendation systems to do something interesting: making predictions for a new user!
 
 ## Obtaining User Ratings 
@@ -305,10 +561,73 @@ def movie_rater(movie_df,num, genre=None):
     3
 
 
+
+```python
+# __SOLUTION__ 
+def movie_rater(movie_df,num, genre=None):
+    userID = 1000
+    rating_list = []
+    while num > 0:
+        if genre:
+            movie = movie_df[movie_df['genres'].str.contains(genre)].sample(1)
+        else:
+            movie = movie_df.sample(1)
+        print(movie)
+        rating = input('How do you rate this movie on a scale of 1-5, press n if you have not seen :\n')
+        if rating == 'n':
+            continue
+        else:
+            rating_one_movie = {'userId':userID,'movieId':movie['movieId'].values[0],'rating':rating}
+            rating_list.append(rating_one_movie) 
+            num -= 1
+    return rating_list
+        
+```
+
+
+```python
+# __SOLUTION__ 
+user_rating = movie_rater(df_movies,4,'Comedy')
+```
+
+          movieId                   title          genres
+    6579    55245  Good Luck Chuck (2007)  Comedy|Romance
+    How do you rate this movie on a scale of 1-5, press n if you have not seen :
+    5
+          movieId                       title          genres
+    1873     2491  Simply Irresistible (1999)  Comedy|Romance
+    How do you rate this movie on a scale of 1-5, press n if you have not seen :
+    4
+          movieId                  title  genres
+    3459     4718  American Pie 2 (2001)  Comedy
+    How do you rate this movie on a scale of 1-5, press n if you have not seen :
+    4
+          movieId             title                   genres
+    4160     5990  Pinocchio (2002)  Children|Comedy|Fantasy
+    How do you rate this movie on a scale of 1-5, press n if you have not seen :
+    3
+
+
 If you're struggling to come up with the above function, you can use this list of user ratings to complete the next segment
 
 
 ```python
+user_rating
+```
+
+
+
+
+    [{'userId': 1000, 'movieId': 55245, 'rating': '5'},
+     {'userId': 1000, 'movieId': 2491, 'rating': '4'},
+     {'userId': 1000, 'movieId': 4718, 'rating': '4'},
+     {'userId': 1000, 'movieId': 5990, 'rating': '3'}]
+
+
+
+
+```python
+# __SOLUTION__ 
 user_rating
 ```
 
@@ -364,6 +683,48 @@ Now that you have new ratings, you can use them to make predictions for this new
 ranked_movies = None
 ```
 
+
+```python
+# __SOLUTION__ 
+## add the new ratings to the original ratings DataFrame
+new_ratings_df = new_df.append(user_rating,ignore_index=True)
+new_data = Dataset.load_from_df(new_ratings_df,reader)
+```
+
+
+```python
+# __SOLUTION__ 
+# train a model using the new combined DataFrame
+svd_ = SVD(n_factors= 50, reg_all=0.05)
+svd_.fit(new_data.build_full_trainset())
+```
+
+
+
+
+    <surprise.prediction_algorithms.matrix_factorization.SVD at 0x11daeb898>
+
+
+
+
+```python
+# __SOLUTION__ 
+# make predictions for the user
+# you'll probably want to create a list of tuples in the format (movie_id, predicted_score)
+list_of_movies = []
+for m_id in new_df['movieId'].unique():
+    list_of_movies.append( (m_id,svd_.predict(1000,m_id)[3]))
+
+```
+
+
+```python
+# __SOLUTION__ 
+# order the predictions from highest to lowest rated
+
+ranked_movies = sorted(list_of_movies,key=lambda x:x[1],reverse=True)
+```
+
  For the final component of this challenge, it could be useful to create a function `recommended_movies` that takes in the parameters:
 * `user_ratings` : list - list of tuples formulated as (user_id, movie_id) (should be in order of best to worst for this individual)
 * `movie_title_df` : DataFrame 
@@ -376,6 +737,38 @@ The function should use a for loop to print out each recommended *n* movies in o
 # return the top n recommendations using the 
 def recommended_movies(user_ratings,movie_title_df,n):
         pass
+            
+recommended_movies(ranked_movies,df_movies,5)
+```
+
+    Recommendation #  1 :  277    Shawshank Redemption, The (1994)
+    Name: title, dtype: object 
+    
+    Recommendation #  2 :  680    Philadelphia Story, The (1940)
+    Name: title, dtype: object 
+    
+    Recommendation #  3 :  686    Rear Window (1954)
+    Name: title, dtype: object 
+    
+    Recommendation #  4 :  602    Dr. Strangelove or: How I Learned to Stop Worr...
+    Name: title, dtype: object 
+    
+    Recommendation #  5 :  926    Amadeus (1984)
+    Name: title, dtype: object 
+    
+
+
+
+```python
+# __SOLUTION__ 
+# return the top n recommendations using the 
+def recommended_movies(user_ratings,movie_title_df,n):
+        for idx, rec in enumerate(user_ratings):
+            title = movie_title_df.loc[movie_title_df['movieId'] == int(rec[0])]['title']
+            print('Recommendation # ',idx+1,': ',title,'\n')
+            n-= 1
+            if n == 0:
+                break
             
 recommended_movies(ranked_movies,df_movies,5)
 ```
