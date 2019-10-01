@@ -78,7 +78,7 @@ import numpy as np
 
 ```python
 ## Perform a gridsearch with SVD
-
+# ⏰ This cell may take several minutes to run
 
 ```
 
