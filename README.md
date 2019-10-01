@@ -78,6 +78,7 @@ import numpy as np
 
 ```python
 ## Perform a gridsearch with SVD
+# ⏰ This cell may take several minutes to run
 params = {'n_factors' :[20,50,100],
          'reg_all':[0.02,0.05,0.1]}
 g_s_svd = GridSearchCV(SVD,param_grid=params,n_jobs=-1)
