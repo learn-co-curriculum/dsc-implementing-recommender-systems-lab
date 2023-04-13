@@ -1,4 +1,3 @@
-
 # Implementing Recommender Systems - Lab
 
 ## Introduction
@@ -18,6 +17,15 @@ In this lab you will:
 
 For this lab, we will be using the famous 1M movie dataset. It contains a collection of user ratings for many different movies. In the last lesson, you were exposed to working with `surprise` datasets. In this lab, you will also go through the process of reading in a dataset into the `surprise` dataset format. To begin with, load the dataset into a Pandas DataFrame. Determine which columns are necessary for your recommendation system and drop any extraneous ones.
 
+To complete this lab, you will need to install the library **Surprise**. 
+
+**Uncomment and run the cell below only once to install Surprise to learn-env.**
+
+
+```python
+# !pip install surprise
+```
+
 
 ```python
 import pandas as pd
@@ -28,10 +36,12 @@ df.info()
     <class 'pandas.core.frame.DataFrame'>
     RangeIndex: 100836 entries, 0 to 100835
     Data columns (total 4 columns):
-    userId       100836 non-null int64
-    movieId      100836 non-null int64
-    rating       100836 non-null float64
-    timestamp    100836 non-null int64
+     #   Column     Non-Null Count   Dtype  
+    ---  ------     --------------   -----  
+     0   userId     100836 non-null  int64  
+     1   movieId    100836 non-null  int64  
+     2   rating     100836 non-null  float64
+     3   timestamp  100836 non-null  int64  
     dtypes: float64(1), int64(3)
     memory usage: 3.1 MB
 
@@ -87,7 +97,6 @@ params = {'n_factors': [20, 50, 100],
          'reg_all': [0.02, 0.05, 0.1]}
 g_s_svd = GridSearchCV(SVD,param_grid=params,n_jobs=-1)
 g_s_svd.fit(data)
-
 ```
 
 
@@ -96,8 +105,8 @@ print(g_s_svd.best_score)
 print(g_s_svd.best_params)
 ```
 
-    {'rmse': 0.8689250510051669, 'mae': 0.6679404366294037}
-    {'rmse': {'n_factors': 50, 'reg_all': 0.05}, 'mae': {'n_factors': 100, 'reg_all': 0.05}}
+    {'rmse': 0.868102914598724, 'mae': 0.6676775766541562}
+    {'rmse': {'n_factors': 100, 'reg_all': 0.05}, 'mae': {'n_factors': 100, 'reg_all': 0.05}}
 
 
 
@@ -115,12 +124,12 @@ print('-----------------------')
 print(np.mean(cv_knn_basic['test_rmse']))
 ```
 
-    ('test_rmse', array([0.97646619, 0.97270627, 0.97874535, 0.97029184, 0.96776748]))
-    ('test_mae', array([0.75444119, 0.75251222, 0.7531242 , 0.74938542, 0.75152129]))
-    ('fit_time', (0.46678805351257324, 0.54010009765625, 0.7059998512268066, 0.5852491855621338, 1.0139541625976562))
-    ('test_time', (2.308177947998047, 2.4834508895874023, 2.6563329696655273, 2.652374029159546, 1.2219891548156738))
+    ('test_rmse', array([0.97369003, 0.97375821, 0.9745871 , 0.96542379, 0.97288311]))
+    ('test_mae', array([0.74898092, 0.753142  , 0.75212946, 0.74723532, 0.7495044 ]))
+    ('fit_time', (0.060803890228271484, 0.06330013275146484, 0.0663609504699707, 0.060571908950805664, 0.05236673355102539))
+    ('test_time', (0.44602489471435547, 0.4508967399597168, 0.4301769733428955, 0.44738316535949707, 0.42812514305114746))
     -----------------------
-    0.9731954260849399
+    0.9720684474044512
 
 
 
@@ -155,16 +164,16 @@ for i in cv_knn_baseline.items():
 np.mean(cv_knn_baseline['test_rmse'])
 ```
 
-    ('test_rmse', array([0.87268017, 0.88765352, 0.87311917, 0.88706914, 0.87043399]))
-    ('test_mae', array([0.66796685, 0.676203  , 0.66790869, 0.67904038, 0.66459155]))
-    ('fit_time', (0.6972200870513916, 0.7296440601348877, 0.5842609405517578, 0.609612226486206, 0.61130690574646))
-    ('test_time', (1.5466029644012451, 1.567044973373413, 1.6441452503204346, 1.5709199905395508, 1.6216418743133545))
+    ('test_rmse', array([0.87594063, 0.8744408 , 0.88114275, 0.87173134, 0.88099762]))
+    ('test_mae', array([0.67057651, 0.66737735, 0.67067535, 0.6677891 , 0.67128841]))
+    ('fit_time', (0.09939002990722656, 0.10296893119812012, 0.1037588119506836, 0.10332417488098145, 0.11193490028381348))
+    ('test_time', (0.5622682571411133, 0.5735628604888916, 0.5679421424865723, 0.6012997627258301, 0.6014230251312256))
 
 
 
 
 
-    0.8781911983703239
+    0.876850626575931
 
 
 
@@ -252,7 +261,6 @@ Just as a reminder, let's look at how you make a prediction for an individual us
 
 
 ```python
-
 svd = SVD(n_factors= 50, reg_all=0.05)
 svd.fit(dataset)
 ```
@@ -260,7 +268,7 @@ svd.fit(dataset)
 
 
 
-    <surprise.prediction_algorithms.matrix_factorization.SVD at 0x11952ab38>
+    <surprise.prediction_algorithms.matrix_factorization.SVD at 0x1463ef3a0>
 
 
 
@@ -272,7 +280,7 @@ svd.predict(2, 4)
 
 
 
-    Prediction(uid=2, iid=4, r_ui=None, est=3.0129484092252135, details={'was_impossible': False})
+    Prediction(uid=2, iid=4, r_ui=None, est=3.1441023814846094, details={'was_impossible': False})
 
 
 
@@ -311,7 +319,7 @@ def movie_rater(movie_df,num, genre=None):
             rating_one_movie = {'userId':userID,'movieId':movie['movieId'].values[0],'rating':rating}
             rating_list.append(rating_one_movie) 
             num -= 1
-    return rating_list      
+    return rating_list
 ```
 
 
@@ -319,22 +327,22 @@ def movie_rater(movie_df,num, genre=None):
 user_rating = movie_rater(df_movies, 4, 'Comedy')
 ```
 
-          movieId                   title          genres
-    6579    55245  Good Luck Chuck (2007)  Comedy|Romance
+          movieId          title                    genres
+    1551     2088  Popeye (1980)  Adventure|Comedy|Musical
     How do you rate this movie on a scale of 1-5, press n if you have not seen :
-    5
-          movieId                       title          genres
-    1873     2491  Simply Irresistible (1999)  Comedy|Romance
+    1
+          movieId                        title          genres
+    3535     4831  Can't Stop the Music (1980)  Comedy|Musical
     How do you rate this movie on a scale of 1-5, press n if you have not seen :
-    4
-          movieId                  title  genres
-    3459     4718  American Pie 2 (2001)  Comedy
-    How do you rate this movie on a scale of 1-5, press n if you have not seen :
-    4
-          movieId             title                   genres
-    4160     5990  Pinocchio (2002)  Children|Comedy|Fantasy
+    2
+          movieId                      title                  genres
+    3480     4749  3 Ninjas Kick Back (1994)  Action|Children|Comedy
     How do you rate this movie on a scale of 1-5, press n if you have not seen :
     3
+          movieId                  title                  genres
+    4923     7380  Ella Enchanted (2004)  Comedy|Fantasy|Romance
+    How do you rate this movie on a scale of 1-5, press n if you have not seen :
+    4
 
 
 If you're struggling to come up with the above function, you can use this list of user ratings to complete the next segment
@@ -347,10 +355,10 @@ user_rating
 
 
 
-    [{'userId': 1000, 'movieId': 55245, 'rating': '5'},
-     {'userId': 1000, 'movieId': 2491, 'rating': '4'},
-     {'userId': 1000, 'movieId': 4718, 'rating': '4'},
-     {'userId': 1000, 'movieId': 5990, 'rating': '3'}]
+    [{'userId': 1000, 'movieId': 2088, 'rating': '1'},
+     {'userId': 1000, 'movieId': 4831, 'rating': '2'},
+     {'userId': 1000, 'movieId': 4749, 'rating': '3'},
+     {'userId': 1000, 'movieId': 7380, 'rating': '4'}]
 
 
 
@@ -366,7 +374,8 @@ Now that you have new ratings, you can use them to make predictions for this new
 
 ```python
 ## add the new ratings to the original ratings DataFrame
-new_ratings_df = new_df.append(user_rating,ignore_index=True)
+user_ratings = pd.DataFrame(user_rating)
+new_ratings_df = pd.concat([new_df, user_ratings], axis=0)
 new_data = Dataset.load_from_df(new_ratings_df,reader)
 ```
 
@@ -380,7 +389,7 @@ svd_.fit(new_data.build_full_trainset())
 
 
 
-    <surprise.prediction_algorithms.matrix_factorization.SVD at 0x11daeb898>
+    <surprise.prediction_algorithms.matrix_factorization.SVD at 0x1463ef820>
 
 
 
@@ -423,16 +432,16 @@ recommended_movies(ranked_movies,df_movies,5)
     Recommendation #  1 :  277    Shawshank Redemption, The (1994)
     Name: title, dtype: object 
     
-    Recommendation #  2 :  680    Philadelphia Story, The (1940)
+    Recommendation #  2 :  602    Dr. Strangelove or: How I Learned to Stop Worr...
     Name: title, dtype: object 
     
     Recommendation #  3 :  686    Rear Window (1954)
     Name: title, dtype: object 
     
-    Recommendation #  4 :  602    Dr. Strangelove or: How I Learned to Stop Worr...
+    Recommendation #  4 :  585    Wallace & Gromit: The Best of Aardman Animatio...
     Name: title, dtype: object 
     
-    Recommendation #  5 :  926    Amadeus (1984)
+    Recommendation #  5 :  659    Godfather, The (1972)
     Name: title, dtype: object 
     
 
